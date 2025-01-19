@@ -1,7 +1,11 @@
 // 必要なモジュールをインポート
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
 import { ensureDir } from "https://deno.land/std@0.200.0/fs/mod.ts";
-import { loadEmojiMap, saveUnknownShortcodesJSON, replaceShortcodesWithUnicode } from "./src/emoji.ts";
+import {
+    loadEmojiMap,
+    replaceShortcodesWithUnicode,
+    saveUnknownShortcodesJSON,
+} from "./src/emoji.ts";
 
 const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
 const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
@@ -76,6 +80,58 @@ async function fetchMessages(channelId: string): Promise<any[]> {
     return messages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
 }
 
+// 添付ファイルをローカルに保存し、リンクを作成
+async function saveAttachments(
+    files: any[],
+    outputDir: string,
+): Promise<string> {
+    if (!files || files.length === 0) return "";
+
+    await ensureDir(outputDir); // ディレクトリを作成
+
+    const links = await Promise.all(
+        files.map(async (file: any) => {
+            if (!file.url_private) return "";
+
+            const originalFileName = file.name || `${file.id}.unknown`; // 名前がない場合のデフォルト名
+            const sanitizedFileName = sanitizeFileName(originalFileName);
+            const filePath = `${imageOutputDir}/${sanitizedFileName}`;
+
+            try {
+                const response = await fetch(file.url_private, {
+                    headers: { Authorization: `Bearer ${SLACK_BOT_TOKEN}` },
+                });
+
+                if (!response.ok) {
+                    console.error(
+                        `Failed to download file: ${file.url_private}`,
+                    );
+                    return "";
+                }
+
+                const fileData = new Uint8Array(await response.arrayBuffer());
+                await Deno.writeFile(filePath, fileData);
+                console.log(`Saved file: ${filePath}`);
+
+                // HYPERLINK形式のリンクを作成
+                return `=HYPERLINK("./images/${sanitizedFileName}", "${sanitizedFileName}")`;
+            } catch (error) {
+                console.error(`Error saving file ${file.url_private}:`, error);
+                return "";
+            }
+        }),
+    );
+
+    return links.filter((link) => link).join(", "); // 有効なリンクをカンマ区切りで返す
+}
+
+// ファイル名を正規化する関数
+function sanitizeFileName(fileName: string): string {
+    return fileName
+        .replace(/\s+/g, "_") // スペースをアンダースコアに置き換え
+        .replace(/[^a-zA-Z0-9._-]/g, ""); // 特殊文字を削除
+}
+
 // メッセージを CSV に保存する関数
 async function saveMessagesToCSV(
     messages: any[],
@@ -86,13 +142,14 @@ async function saveMessagesToCSV(
     // rows を生成するジェネレータ関数
     async function* generateRows() {
         // ヘッダーを最初に出力
-        yield ["timestamp", "user", "text"];
+        yield ["timestamp (JST)", "user", "text", "attachment"];
         // 各メッセージを出力
         for (const message of messages) {
             yield [
                 formatTimestampToJST(message.ts),
                 userMap[message.user] || "Unknown User", // ユーザーIDを名前に変換
                 replaceShortcodesWithUnicode(message.text || "", emojiMap), // ショートコードをUnicodeに変換
+                await saveAttachments(message.files || [], imageOutputDir), // 添付ファイルのリンクを取得
             ];
         }
     }
@@ -113,38 +170,6 @@ async function saveMessagesToCSV(
         file.close();
     }
 }
-
-// メッセージの画像を保存
-async function saveImagesFromMessages(messages: any[], outputDir: string) {
-    for (const message of messages) {
-      if (!message.files) continue; // ファイルがないメッセージはスキップ
-  
-      for (const file of message.files) {
-        if (file.mimetype.startsWith("image/")) {
-          const fileUrl = file.url_private;
-          const fileName = file.id + "." + file.mimetype.split("/")[1]; // ファイル名を生成
-          const filePath = `${outputDir}/${fileName}`;
-  
-          try {
-            const response = await fetch(fileUrl, {
-              headers: { Authorization: `Bearer ${SLACK_BOT_TOKEN}` },
-            });
-  
-            if (!response.ok) {
-              console.error(`Failed to download image: ${fileUrl}`);
-              continue;
-            }
-  
-            const fileData = new Uint8Array(await response.arrayBuffer());
-            await Deno.writeFile(filePath, fileData);
-            console.log(`Saved image: ${filePath}`);
-          } catch (error) {
-            console.error(`Error saving image ${fileUrl}:`, error);
-          }
-        }
-      }
-    }
-  }
 
 // エポック秒を日本時間にフォーマットされた日付文字列に変換する関数
 function formatTimestampToJST(timestamp: string): string {
@@ -172,7 +197,6 @@ async function main() {
 
     await ensureDir(outputDir); // ディレクトリを作成
     await ensureDir(imageOutputDir);
-    await saveImagesFromMessages(messages, imageOutputDir); // メッセージ画像を保存
 
     // CSV ファイルとして保存
     await saveMessagesToCSV(messages, userMap, emojiMap, filePath);
