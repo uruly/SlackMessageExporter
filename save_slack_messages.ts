@@ -24,7 +24,7 @@ async function fetchUserMap(): Promise<Record<string, string>> {
     // ユーザーIDと名前のマッピングを作成
     const userMap: Record<string, string> = {};
     for (const member of data.members) {
-        userMap[member.id] = member.real_name || member.name  || "Unknown User";
+        userMap[member.id] = member.real_name || member.name || "Unknown User";
     }
 
     return userMap;
@@ -34,10 +34,10 @@ async function fetchUserMap(): Promise<Record<string, string>> {
 async function fetchMessages(channelId: string): Promise<any[]> {
     let messages: any[] = [];
     let nextCursor: string | undefined;
-    let pageIndex = 1
+    let pageIndex = 1;
 
     do {
-        console.log(pageIndex + "ページ目を取得中...")
+        console.log(pageIndex + "ページ目を取得中...");
         const url =
             `https://slack.com/api/conversations.history?channel=${channelId}${
                 nextCursor ? `&cursor=${nextCursor}` : ""
@@ -60,11 +60,12 @@ async function fetchMessages(channelId: string): Promise<any[]> {
         messages = messages.concat(data.messages);
 
         // 次のページのカーソルを取得
-        pageIndex += 1
+        pageIndex += 1;
         nextCursor = data.response_metadata?.next_cursor;
     } while (nextCursor); // 次のカーソルが存在する場合はループを継続
 
-    return messages;
+    // 日付の古い順にソート
+    return messages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
 }
 
 // メッセージを CSV に保存する関数
