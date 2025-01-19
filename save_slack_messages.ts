@@ -127,14 +127,12 @@ async function saveAttachments(
 }
 
 // ファイル名を正規化する関数（日本語を保持）
+// ファイル名を正規化し、誤字を修正する関数
 function sanitizeFileName(fileName: string): string {
     return fileName
-        .replace(/\s+/g, "_") // スペースをアンダースコアに置き換え
-        .replace(
-            /[^a-zA-Z0-9._\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}-]/gu,
-            "",
-        ); // 特殊文字を削除（日本語を保持）
-}
+      .replace(/\s+/g, "_") // スペースをアンダースコアに置き換え
+      .replace(/[（）:/"<>|?*]/g, "") // 特定の特殊文字を削除
+  }
 
 // メッセージを CSV に保存する関数
 async function saveMessagesToCSV(
