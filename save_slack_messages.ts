@@ -1,8 +1,8 @@
 // 必要なモジュールをインポート
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
-import { config } from "https://deno.land/std@0.200.0/dotenv/mod.ts";
+import { load } from "https://deno.land/std@0.203.0/dotenv/mod.ts"
 
-const env = await config();
+const env = await load();
 const SLACK_BOT_TOKEN = env.SLACK_BOT_TOKEN;
 const SLACK_CHANNEL_ID = env.SLACK_CHANNEL_ID;
 

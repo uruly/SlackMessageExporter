@@ -1,5 +1,5 @@
 ## Usage
 
 ```
-deno run --allow-net --allow-write save_slack_messages.ts
+deno run --allow-net --allow-write --allow-read --allow-env save_slack_messages.ts
 ```
