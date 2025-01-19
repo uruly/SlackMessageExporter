@@ -1,7 +1,7 @@
 // 必要なモジュールをインポート
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
 import { ensureDir } from "https://deno.land/std@0.200.0/fs/mod.ts";
-import { loadEmojiMap, saveUnknownShortcodesLog, replaceShortcodesWithUnicode } from "./src/emoji.ts";
+import { loadEmojiMap, saveUnknownShortcodesJSON, replaceShortcodesWithUnicode } from "./src/emoji.ts";
 
 const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
 const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
@@ -177,7 +177,7 @@ async function main() {
     // CSV ファイルとして保存
     await saveMessagesToCSV(messages, userMap, emojiMap, filePath);
 
-    await saveUnknownShortcodesLog(logFilePath); // 未対応ショートコードをログに保存
+    await saveUnknownShortcodesJSON(logFilePath); // 未対応ショートコードをログに保存
 }
 
 main().catch((err) => console.error(err));
