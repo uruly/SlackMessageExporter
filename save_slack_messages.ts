@@ -83,11 +83,8 @@ async function fetchMessages(channelId: string): Promise<any[]> {
 // 添付ファイルをローカルに保存し、リンクを作成
 async function saveAttachments(
     files: any[],
-    outputDir: string,
 ): Promise<string> {
     if (!files || files.length === 0) return "";
-
-    await ensureDir(outputDir); // ディレクトリを作成
 
     const links = await Promise.all(
         files.map(async (file: any) => {
@@ -95,7 +92,11 @@ async function saveAttachments(
 
             const originalFileName = file.name || `${file.id}.unknown`; // 名前がない場合のデフォルト名
             const sanitizedFileName = sanitizeFileName(originalFileName);
-            const filePath = `${imageOutputDir}/${sanitizedFileName}`;
+            const uniqueFileName = await getUniqueFileName(
+                outputDir,
+                sanitizedFileName,
+            );
+            const filePath = `${imageOutputDir}/${uniqueFileName}`;
 
             try {
                 const response = await fetch(file.url_private, {
@@ -115,7 +116,7 @@ async function saveAttachments(
 
                 // HYPERLINK形式のリンクを作成
                 // return `=HYPERLINK("./images/${sanitizedFileName}", "${sanitizedFileName}")`;
-                return sanitizedFileName
+                return uniqueFileName;
             } catch (error) {
                 console.error(`Error saving file ${file.url_private}:`, error);
                 return "";
@@ -130,9 +131,40 @@ async function saveAttachments(
 // ファイル名を正規化し、誤字を修正する関数
 function sanitizeFileName(fileName: string): string {
     return fileName
-      .replace(/\s+/g, "_") // スペースをアンダースコアに置き換え
-      .replace(/[（）:/"<>|?*]/g, "") // 特定の特殊文字を削除
-  }
+        .replace(/\s+/g, "_") // スペースをアンダースコアに置き換え
+        .replace(/[（）:/"<>|?*]/g, ""); // 特定の特殊文字を削除
+}
+
+// 重複を避けるためのファイル名を生成
+async function getUniqueFileName(
+    directory: string,
+    fileName: string,
+): Promise<string> {
+    const baseName = fileName.replace(/\.[^/.]+$/, ""); // 拡張子を除いた部分
+    const extension = fileName.split(".").pop(); // 拡張子を取得
+    let uniqueName = fileName;
+    let counter = 1;
+
+    while (await exists(`${directory}/${uniqueName}`)) {
+        uniqueName = `${baseName}_${counter}.${extension}`;
+        counter++;
+    }
+
+    return uniqueName;
+}
+
+// ファイルが存在するか確認
+async function exists(path: string): Promise<boolean> {
+    try {
+        await Deno.stat(path);
+        return true;
+    } catch (error) {
+        if (error instanceof Deno.errors.NotFound) {
+            return false;
+        }
+        throw error;
+    }
+}
 
 // メッセージを CSV に保存する関数
 async function saveMessagesToCSV(
@@ -151,7 +183,7 @@ async function saveMessagesToCSV(
                 formatTimestampToJST(message.ts),
                 userMap[message.user] || "Unknown User", // ユーザーIDを名前に変換
                 replaceShortcodesWithUnicode(message.text || "", emojiMap), // ショートコードをUnicodeに変換
-                await saveAttachments(message.files || [], imageOutputDir), // 添付ファイルのリンクを取得
+                await saveAttachments(message.files || []), // 添付ファイルのリンクを取得
             ];
         }
     }
