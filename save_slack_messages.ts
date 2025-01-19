@@ -114,7 +114,8 @@ async function saveAttachments(
                 console.log(`Saved file: ${filePath}`);
 
                 // HYPERLINK形式のリンクを作成
-                return `=HYPERLINK("./images/${sanitizedFileName}", "${sanitizedFileName}")`;
+                // return `=HYPERLINK("./images/${sanitizedFileName}", "${sanitizedFileName}")`;
+                return sanitizedFileName
             } catch (error) {
                 console.error(`Error saving file ${file.url_private}:`, error);
                 return "";
