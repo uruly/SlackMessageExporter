@@ -24,7 +24,7 @@ async function fetchUserMap(): Promise<Record<string, string>> {
     // ユーザーIDと名前のマッピングを作成
     const userMap: Record<string, string> = {};
     for (const member of data.members) {
-        userMap[member.id] = member.name || member.real_name || "Unknown User";
+        userMap[member.id] = member.real_name || member.name  || "Unknown User";
     }
 
     return userMap;
