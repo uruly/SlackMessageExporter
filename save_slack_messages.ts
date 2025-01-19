@@ -34,8 +34,10 @@ async function fetchUserMap(): Promise<Record<string, string>> {
 async function fetchMessages(channelId: string): Promise<any[]> {
     let messages: any[] = [];
     let nextCursor: string | undefined;
+    let pageIndex = 1
 
     do {
+        console.log(pageIndex + "ページ目を取得中...")
         const url =
             `https://slack.com/api/conversations.history?channel=${channelId}${
                 nextCursor ? `&cursor=${nextCursor}` : ""
@@ -58,6 +60,7 @@ async function fetchMessages(channelId: string): Promise<any[]> {
         messages = messages.concat(data.messages);
 
         // 次のページのカーソルを取得
+        pageIndex += 1
         nextCursor = data.response_metadata?.next_cursor;
     } while (nextCursor); // 次のカーソルが存在する場合はループを継続
 
