@@ -125,11 +125,14 @@ async function saveAttachments(
     return links.filter((link) => link).join(", "); // 有効なリンクをカンマ区切りで返す
 }
 
-// ファイル名を正規化する関数
+// ファイル名を正規化する関数（日本語を保持）
 function sanitizeFileName(fileName: string): string {
     return fileName
         .replace(/\s+/g, "_") // スペースをアンダースコアに置き換え
-        .replace(/[^a-zA-Z0-9._-]/g, ""); // 特殊文字を削除
+        .replace(
+            /[^a-zA-Z0-9._\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}-]/gu,
+            "",
+        ); // 特殊文字を削除（日本語を保持）
 }
 
 // メッセージを CSV に保存する関数
