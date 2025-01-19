@@ -1,9 +1,16 @@
 // 必要なモジュールをインポート
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
 import { ensureDir } from "https://deno.land/std@0.200.0/fs/mod.ts";
+import { loadEmojiMap, saveUnknownShortcodesLog, replaceShortcodesWithUnicode } from "./src/emoji.ts";
 
 const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
 const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
+
+const emojiMapFilePath = "./emoji_map.json";
+const outputDir = "./outputs";
+const imageOutputDir = "./outputs/images";
+const filePath = "./outputs/slack_messages.csv";
+const logFilePath = "./unknown_shortcodes.json";
 
 // Slack API: ユーザー一覧を取得
 async function fetchUserMap(): Promise<Record<string, string>> {
@@ -73,6 +80,7 @@ async function fetchMessages(channelId: string): Promise<any[]> {
 async function saveMessagesToCSV(
     messages: any[],
     userMap: Record<string, string>,
+    emojiMap: Record<string, string>,
     filePath: string,
 ) {
     // rows を生成するジェネレータ関数
@@ -84,7 +92,7 @@ async function saveMessagesToCSV(
             yield [
                 formatTimestampToJST(message.ts),
                 userMap[message.user] || "Unknown User", // ユーザーIDを名前に変換
-                message.text,
+                replaceShortcodesWithUnicode(message.text || "", emojiMap), // ショートコードをUnicodeに変換
             ];
         }
     }
@@ -151,6 +159,8 @@ async function main() {
         );
         return;
     }
+    const emojiMap = await loadEmojiMap(emojiMapFilePath);
+
     // ユーザーマッピングを取得
     const userMap = await fetchUserMap();
 
@@ -160,16 +170,14 @@ async function main() {
         return;
     }
 
-    const outputDir = "./outputs"
     await ensureDir(outputDir); // ディレクトリを作成
-
-    const imageOutputDir = "./outputs/images";
     await ensureDir(imageOutputDir);
     await saveImagesFromMessages(messages, imageOutputDir); // メッセージ画像を保存
 
     // CSV ファイルとして保存
-    const filePath = "./outputs/slack_messages.csv";
-    await saveMessagesToCSV(messages, userMap, filePath);
+    await saveMessagesToCSV(messages, userMap, emojiMap, filePath);
+
+    await saveUnknownShortcodesLog(logFilePath); // 未対応ショートコードをログに保存
 }
 
 main().catch((err) => console.error(err));
