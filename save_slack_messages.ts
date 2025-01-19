@@ -6,25 +6,37 @@ const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID") ?? "";
 
 // Slack API を使ってメッセージを取得する関数
 async function fetchMessages(channelId: string): Promise<any[]> {
-  const url = `https://slack.com/api/conversations.history?channel=${channelId}`;
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-  });
-  console.log(response);
-  const data = await response.json();
-  console.log(data);
-
-  if (!data.ok) {
-    console.error("Error fetching messages:", data.error);
-    return [];
+    let messages: any[] = [];
+    let nextCursor: string | undefined;
+  
+    do {
+      const url = `https://slack.com/api/conversations.history?channel=${channelId}${
+        nextCursor ? `&cursor=${nextCursor}` : ""
+      }`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+  
+      if (!data.ok) {
+        console.error("Error fetching messages:", data.error);
+        return [];
+      }
+  
+      // メッセージを追加
+      messages = messages.concat(data.messages);
+  
+      // 次のページのカーソルを取得
+      nextCursor = data.response_metadata?.next_cursor;
+  
+    } while (nextCursor); // 次のカーソルが存在する場合はループを継続
+  
+    return messages;
   }
-
-  return data.messages;
-}
 
 // メッセージを CSV に保存する関数
 async function saveMessagesToCSV(messages: any[], filePath: string) {
