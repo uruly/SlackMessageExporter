@@ -2,7 +2,33 @@
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
 
 const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
-const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID") ?? "";
+const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
+
+// Slack API: ユーザー一覧を取得
+async function fetchUserMap(): Promise<Record<string, string>> {
+    const url = "https://slack.com/api/users.list";
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${SLACK_BOT_TOKEN}`,
+            "Content-Type": "application/json",
+        },
+    });
+    const data = await response.json();
+
+    if (!data.ok) {
+        console.error("Error fetching users:", data.error);
+        return {};
+    }
+
+    // ユーザーIDと名前のマッピングを作成
+    const userMap: Record<string, string> = {};
+    for (const member of data.members) {
+        userMap[member.id] = member.name || member.real_name || "Unknown User";
+    }
+
+    return userMap;
+}
 
 // Slack API を使ってメッセージを取得する関数
 async function fetchMessages(channelId: string): Promise<any[]> {
@@ -39,7 +65,11 @@ async function fetchMessages(channelId: string): Promise<any[]> {
 }
 
 // メッセージを CSV に保存する関数
-async function saveMessagesToCSV(messages: any[], filePath: string) {
+async function saveMessagesToCSV(
+    messages: any[],
+    userMap: Record<string, string>,
+    filePath: string,
+) {
     // rows を生成するジェネレータ関数
     async function* generateRows() {
         // ヘッダーを最初に出力
@@ -48,7 +78,7 @@ async function saveMessagesToCSV(messages: any[], filePath: string) {
         for (const message of messages) {
             yield [
                 formatTimestampToJST(message.ts),
-                message.user,
+                userMap[message.user] || "Unknown User", // ユーザーIDを名前に変換
                 message.text,
             ];
         }
@@ -78,6 +108,15 @@ function formatTimestampToJST(timestamp: string): string {
 }
 
 async function main() {
+    if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
+        console.error(
+            "SLACK_BOT_TOKEN または SLACK_CHANNEL_ID が設定されていません。",
+        );
+        return;
+    }
+    // ユーザーマッピングを取得
+    const userMap = await fetchUserMap();
+
     const messages = await fetchMessages(SLACK_CHANNEL_ID);
     if (messages.length === 0) {
         console.log("No messages found.");
@@ -86,7 +125,7 @@ async function main() {
 
     // CSV ファイルとして保存
     const filePath = "./slack_messages.csv";
-    await saveMessagesToCSV(messages, filePath);
+    await saveMessagesToCSV(messages, userMap, filePath);
 }
 
 main().catch((err) => console.error(err));
