@@ -93,7 +93,7 @@ async function saveAttachments(
             const originalFileName = file.name || `${file.id}.unknown`; // 名前がない場合のデフォルト名
             const sanitizedFileName = sanitizeFileName(originalFileName);
             const uniqueFileName = await getUniqueFileName(
-                outputDir,
+                attachmentDir,
                 sanitizedFileName,
             );
             const filePath = `${attachmentDir}/${uniqueFileName}`;

@@ -114,7 +114,7 @@ async function saveAttachments(
                 await Deno.writeFile(filePath, fileData);
                 console.log(`Saved file: ${filePath}`);
 
-                return `<a href="${attachmentDir}/${uniqueFileName}" target="_blank">${uniqueFileName}</a>`;
+                return `<a href="./attachments/${uniqueFileName}" target="_blank">${uniqueFileName}</a>`;
             } catch (error) {
                 console.error(`Error saving file ${file.url_private}:`, error);
                 return "";

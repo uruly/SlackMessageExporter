@@ -2,12 +2,12 @@
 
 CSV
 ```
-deno run --env --allow-net --allow-write --allow-read --allow-env save_csv
+deno run --env --allow-net --allow-write --allow-read --allow-env save_csv.ts
 ```
 
 HTML
 ```
-deno run --env --allow-net --allow-write --allow-read --allow-env save_html
+deno run --env --allow-net --allow-write --allow-read --allow-env save_html.ts
 ```
 
 ## Permissions
