@@ -1,10 +1,8 @@
 // 必要なモジュールをインポート
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
-import { load } from "https://deno.land/std@0.203.0/dotenv/mod.ts"
 
-const env = await load();
-const SLACK_BOT_TOKEN = env.SLACK_BOT_TOKEN;
-const SLACK_CHANNEL_ID = env.SLACK_CHANNEL_ID;
+const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
+const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID") ?? "";
 
 // Slack API を使ってメッセージを取得する関数
 async function fetchMessages(channelId: string): Promise<any[]> {
