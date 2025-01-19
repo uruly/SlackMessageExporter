@@ -12,7 +12,7 @@ const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
 
 const emojiMapFilePath = "./emoji_map.json";
 const outputDir = "./outputs";
-const imageOutputDir = "./outputs/images";
+const attachmentDir = "./outputs/attachments";
 const filePath = "./outputs/slack_messages.csv";
 const logFilePath = "./unknown_shortcodes.json";
 
@@ -96,7 +96,7 @@ async function saveAttachments(
                 outputDir,
                 sanitizedFileName,
             );
-            const filePath = `${imageOutputDir}/${uniqueFileName}`;
+            const filePath = `${attachmentDir}/${uniqueFileName}`;
 
             try {
                 const response = await fetch(file.url_private, {
@@ -230,7 +230,7 @@ async function main() {
     }
 
     await ensureDir(outputDir); // ディレクトリを作成
-    await ensureDir(imageOutputDir);
+    await ensureDir(attachmentDir);
 
     // CSV ファイルとして保存
     await saveMessagesToCSV(messages, userMap, emojiMap, filePath);
