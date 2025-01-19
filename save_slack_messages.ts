@@ -1,5 +1,6 @@
 // 必要なモジュールをインポート
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
+import { ensureDir } from "https://deno.land/std@0.200.0/fs/mod.ts";
 
 const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
 const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
@@ -105,6 +106,38 @@ async function saveMessagesToCSV(
     }
 }
 
+// メッセージの画像を保存
+async function saveImagesFromMessages(messages: any[], outputDir: string) {
+    for (const message of messages) {
+      if (!message.files) continue; // ファイルがないメッセージはスキップ
+  
+      for (const file of message.files) {
+        if (file.mimetype.startsWith("image/")) {
+          const fileUrl = file.url_private;
+          const fileName = file.id + "." + file.mimetype.split("/")[1]; // ファイル名を生成
+          const filePath = `${outputDir}/${fileName}`;
+  
+          try {
+            const response = await fetch(fileUrl, {
+              headers: { Authorization: `Bearer ${SLACK_BOT_TOKEN}` },
+            });
+  
+            if (!response.ok) {
+              console.error(`Failed to download image: ${fileUrl}`);
+              continue;
+            }
+  
+            const fileData = new Uint8Array(await response.arrayBuffer());
+            await Deno.writeFile(filePath, fileData);
+            console.log(`Saved image: ${filePath}`);
+          } catch (error) {
+            console.error(`Error saving image ${fileUrl}:`, error);
+          }
+        }
+      }
+    }
+  }
+
 // エポック秒を日本時間にフォーマットされた日付文字列に変換する関数
 function formatTimestampToJST(timestamp: string): string {
     const date = new Date(parseFloat(timestamp) * 1000); // エポック秒からミリ秒に変換
@@ -127,8 +160,15 @@ async function main() {
         return;
     }
 
+    const outputDir = "./outputs"
+    await ensureDir(outputDir); // ディレクトリを作成
+
+    const imageOutputDir = "./outputs/images";
+    await ensureDir(imageOutputDir);
+    await saveImagesFromMessages(messages, imageOutputDir); // メッセージ画像を保存
+
     // CSV ファイルとして保存
-    const filePath = "./slack_messages.csv";
+    const filePath = "./outputs/slack_messages.csv";
     await saveMessagesToCSV(messages, userMap, filePath);
 }
 
