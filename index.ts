@@ -10,10 +10,10 @@ const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
 
 const emojiMapFilePath = "./emoji_map.json";
 const outputDir = "./outputs";
-const attachmentDir = "./outputs/attachments";
-const filePath = "./outputs/slack_messages.csv";
+const attachmentDir = outputDir + "/attachments";
+const csvFilePath = outputDir + "/slack_messages.csv";
+const htmlFilePath = outputDir + "/slack_messages.html";
 const logFilePath = "./unknown_shortcodes.json";
-const htmlPath = "./outputs/slack_messages.html";
 
 async function main() {
     if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
@@ -36,9 +36,9 @@ async function main() {
     await ensureDir(attachmentDir);
 
     // CSV ファイルとして保存
-    await saveMessagesToCSV(messages, users, filePath);
+    await saveMessagesToCSV(messages, csvFilePath);
     // HTML ファイルとして保存
-    await saveMessagesToHTML(messages, users, htmlPath);
+    await saveMessagesToHTML(messages, htmlFilePath);
 
     await saveUnknownShortcodesJSON(logFilePath); // 未対応ショートコードをログに保存
 }

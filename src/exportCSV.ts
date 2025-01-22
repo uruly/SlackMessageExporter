@@ -1,13 +1,12 @@
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
 import { formatTimestampToJST } from "./utils/formatter.ts";
-import { User } from "./types/User.ts";
 import { replaceShortcodesWithUnicode } from "./emoji.ts";
 import { saveAttachments } from "./fetchAttachments.ts";
+import { Message } from "./types/Message.ts";
 
 // メッセージを CSV に保存する関数
 export async function saveMessagesToCSV(
-    messages: any[],
-    users: User[],
+    messages: Message[],
     filePath: string,
 ) {
     const attachmentDir = filePath + "/attachments";
@@ -17,12 +16,12 @@ export async function saveMessagesToCSV(
         yield ["timestamp (JST)", "user", "text", "attachment"];
         // 各メッセージを出力
         for (const message of messages) {
-            const user = users.find(user => user.id === message.user);
+            const user = message.user;
             yield [
-                formatTimestampToJST(message.ts),
+                formatTimestampToJST(message.timestamp),
                 user?.realName || "Unknown User", // ユーザーIDを名前に変換
                 replaceShortcodesWithUnicode(message.text || ""), // ショートコードをUnicodeに変換
-                await saveAttachments(message.files || [], attachmentDir), // 添付ファイルのリンクを取得 ここどうにかしたいね
+                await saveAttachments(message.attachments || [], attachmentDir), // 添付ファイルのリンクを取得 ここどうにかしたいね
             ];
         }
     }
