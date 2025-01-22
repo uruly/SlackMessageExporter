@@ -1,22 +1,25 @@
-// JSONファイルからショートコードと絵文字のマッピングを読み込む
-export async function loadEmojiMap(filePath: string): Promise<Record<string, string>> {
-    const jsonData = await Deno.readTextFile(filePath);
-    return JSON.parse(jsonData);
-}
+import { Emoji } from "./types/Emoji.ts";
 
 // 未対応のショートコードを検出するリスト
 const unknownShortcodes: Set<string> = new Set();
 
+// JSONファイルからショートコードと絵文字のマッピングを読み込む
+export async function loadEmojiList(filePath: string): Promise<Emoji[]> {
+    const jsonData = await Deno.readTextFile(filePath);
+    return JSON.parse(jsonData);
+}
+
 // ショートコードをUnicode絵文字に置き換え
 export function replaceShortcodesWithUnicode(
     text: string,
-    emojiMap: Record<string, string>,
+    emojiList: Emoji[],
 ): string {
     return text.replace(/:([a-zA-Z0-9_+-]+):/g, (match, shortcode) => {
-        if (!emojiMap[shortcode]) {
+        const emoji = emojiList.find(emoji => emoji.shortcode === shortcode);
+        if (!emoji) {
             unknownShortcodes.add(shortcode); // 未対応のショートコードを記録
         }
-        return emojiMap[shortcode] || match; // マッチする絵文字があれば置き換え
+        return emoji?.unicode || match; // マッチする絵文字があれば置き換え
     });
 }
 

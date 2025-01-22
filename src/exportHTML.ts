@@ -1,13 +1,14 @@
-import { replaceShortcodesWithUnicode } from "./emoji.ts";
+import { replaceShortcodesWithUnicode } from "./loadEmoji.ts";
 import { saveAttachments } from "./fetchAttachments.ts";
 import { User } from "./types/User.ts";
 import { formatTimestampToJST } from "./utils/formatter.ts";
+import { Emoji } from "./types/Emoji.ts";
 
 // HTML出力を作成
 export async function saveMessagesToHTML(
     messages: any[],
     users: User[],
-    emojiMap: Record<string, string>,
+    emojiList: Emoji[],
     filePath: string,
 ) {
     const header = ["Timestamp (JST)", "User", "Text", "Attachment"];
@@ -16,7 +17,7 @@ export async function saveMessagesToHTML(
         messages.map(async (message) => {
             const user = users.find(user => user.id === message.user);
             const timestamp = formatTimestampToJST(message.ts)
-            const text = replaceShortcodesWithUnicode(message.text || "", emojiMap) // ショートコードをUnicodeに変換n User";
+            const text = replaceShortcodesWithUnicode(message.text || "", emojiList) // ショートコードをUnicodeに変換";
             const attachment = await saveAttachments(
                 message.files || [],
                 attachmentDir
