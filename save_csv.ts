@@ -6,6 +6,7 @@ import {
     replaceShortcodesWithUnicode,
     saveUnknownShortcodesJSON,
 } from "./src/emoji.ts";
+import { User } from "./src/types/User.ts";
 
 const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
 const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
@@ -17,7 +18,7 @@ const filePath = "./outputs/slack_messages.csv";
 const logFilePath = "./unknown_shortcodes.json";
 
 // Slack API: ユーザー一覧を取得
-async function fetchUserMap(): Promise<Record<string, string>> {
+async function fetchUserMap(): Promise<Array<User>> {
     const url = "https://slack.com/api/users.list";
     const response = await fetch(url, {
         method: "GET",
@@ -30,16 +31,20 @@ async function fetchUserMap(): Promise<Record<string, string>> {
 
     if (!data.ok) {
         console.error("Error fetching users:", data.error);
-        return {};
+        return [];
     }
 
     // ユーザーIDと名前のマッピングを作成
-    const userMap: Record<string, string> = {};
+    const users: Array<User> = [];
     for (const member of data.members) {
-        userMap[member.id] = member.real_name || member.name || "Unknown User";
+        users.push({
+            id: member.id,
+            realName: member.real_name || member.name || "Unknown User",
+            iconURL:  member.profile.image_48
+        })
     }
 
-    return userMap;
+    return users;
 }
 
 // Slack API を使ってメッセージを取得する関数
@@ -169,7 +174,7 @@ async function exists(path: string): Promise<boolean> {
 // メッセージを CSV に保存する関数
 async function saveMessagesToCSV(
     messages: any[],
-    userMap: Record<string, string>,
+    users: Array<User>,
     emojiMap: Record<string, string>,
     filePath: string,
 ) {
@@ -179,9 +184,10 @@ async function saveMessagesToCSV(
         yield ["timestamp (JST)", "user", "text", "attachment"];
         // 各メッセージを出力
         for (const message of messages) {
+            const user = users.find(user => user.id === message.user);
             yield [
                 formatTimestampToJST(message.ts),
-                userMap[message.user] || "Unknown User", // ユーザーIDを名前に変換
+                user?.realName || "Unknown User", // ユーザーIDを名前に変換
                 replaceShortcodesWithUnicode(message.text || "", emojiMap), // ショートコードをUnicodeに変換
                 await saveAttachments(message.files || []), // 添付ファイルのリンクを取得
             ];
@@ -221,7 +227,7 @@ async function main() {
     const emojiMap = await loadEmojiMap(emojiMapFilePath);
 
     // ユーザーマッピングを取得
-    const userMap = await fetchUserMap();
+    const users= await fetchUserMap();
 
     const messages = await fetchMessages(SLACK_CHANNEL_ID);
     if (messages.length === 0) {
@@ -233,7 +239,7 @@ async function main() {
     await ensureDir(attachmentDir);
 
     // CSV ファイルとして保存
-    await saveMessagesToCSV(messages, userMap, emojiMap, filePath);
+    await saveMessagesToCSV(messages, users, emojiMap, filePath);
 
     await saveUnknownShortcodesJSON(logFilePath); // 未対応ショートコードをログに保存
 }
