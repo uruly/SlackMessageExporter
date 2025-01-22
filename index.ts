@@ -26,7 +26,7 @@ async function main() {
     await loadEmojiList(emojiMapFilePath);
 
     const users = await fetchUsers();
-    const messages = await fetchMessages(SLACK_CHANNEL_ID);
+    const messages = await fetchMessages(SLACK_CHANNEL_ID, users);
     if (messages.length === 0) {
         console.log("No messages found.");
         return;

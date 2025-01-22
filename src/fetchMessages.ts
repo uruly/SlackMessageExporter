@@ -1,8 +1,10 @@
 import { SLACK_BOT_TOKEN } from "./settings.ts";
+import { Message } from "./types/Message.ts";
+import { User } from "./types/User.ts";
 
 // Slack API を使ってメッセージを取得する関数
-export async function fetchMessages(channelId: string): Promise<any[]> {
-    let messages: any[] = [];
+export async function fetchMessages(channelId: string, users: User[]): Promise<any[]> {
+    let messages: Message[] = [];
     let nextCursor: string | undefined;
     let pageIndex = 1;
 
@@ -25,9 +27,16 @@ export async function fetchMessages(channelId: string): Promise<any[]> {
             console.error("Error fetching messages:", data.error);
             return [];
         }
-
+        const currentPageMessages = data.messages.map((message: any) => {
+            return {
+                timestamp: message.ts,
+                user: users.find(user => user.id === message.user),
+                text: message.text || "",
+                attachements: message.files
+            }
+        })
         // メッセージを追加
-        messages = messages.concat(data.messages);
+        messages = messages.concat(currentPageMessages);
 
         // 次のページのカーソルを取得
         pageIndex += 1;
@@ -35,5 +44,5 @@ export async function fetchMessages(channelId: string): Promise<any[]> {
     } while (nextCursor); // 次のカーソルが存在する場合はループを継続
 
     // 日付の古い順にソート
-    return messages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
+    return messages.sort((a, b) => parseFloat(a.timestamp) - parseFloat(b.timestamp));
 }
