@@ -1,6 +1,5 @@
-// 必要なモジュールをインポート
 import { ensureDir } from "https://deno.land/std@0.200.0/fs/mod.ts";
-import { loadEmojiList, saveUnknownShortcodesJSON } from "./src/loadEmoji.ts";
+import { loadEmojiList, saveUnknownShortcodesJSON } from "./src/emoji.ts";
 import { fetchUsers } from "./src/fetchUsers.ts";
 import { fetchMessages } from "./src/fetchMessages.ts";
 import { saveMessagesToCSV } from "./src/exportCSV.ts";
@@ -23,9 +22,9 @@ async function main() {
         );
         return;
     }
-    const emojiList = await loadEmojiList(emojiMapFilePath);
+    // 絵文字を読み込む
+    await loadEmojiList(emojiMapFilePath);
 
-    // ユーザーマッピングを取得
     const users = await fetchUsers();
     const messages = await fetchMessages(SLACK_CHANNEL_ID);
     if (messages.length === 0) {
@@ -33,13 +32,13 @@ async function main() {
         return;
     }
 
-    await ensureDir(outputDir); // ディレクトリを作成
+    await ensureDir(outputDir);
     await ensureDir(attachmentDir);
 
     // CSV ファイルとして保存
-    await saveMessagesToCSV(messages, users, emojiList, filePath);
+    await saveMessagesToCSV(messages, users, filePath);
     // HTML ファイルとして保存
-    await saveMessagesToHTML(messages, users, emojiList, htmlPath);
+    await saveMessagesToHTML(messages, users, htmlPath);
 
     await saveUnknownShortcodesJSON(logFilePath); // 未対応ショートコードをログに保存
 }
