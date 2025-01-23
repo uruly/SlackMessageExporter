@@ -1,5 +1,4 @@
 import { replaceShortcodesWithUnicode } from "./emoji.ts";
-import { saveAttachments } from "./fetchAttachments.ts";
 import { Message } from "./types/Message.ts";
 import { formatTimestampToJST } from "./utils/formatter.ts";
 
@@ -9,22 +8,20 @@ export async function saveMessagesToHTML(
     filePath: string,
 ) {
     const header = ["Timestamp (JST)", "User", "Text", "Attachment"];
-    const attachmentDir = filePath + "/attachments";
     const rows = await Promise.all(
         messages.map(async (message) => {
             const timestamp = formatTimestampToJST(message.timestamp)
             const text = replaceShortcodesWithUnicode(message.text || "") // ショートコードをUnicodeに変換";
-            const attachment = await saveAttachments(
-                message.attachments || [],
-                attachmentDir
-            );
+            const attachments = message.attachments;
             const userName = message.user?.realName ?? "Unknowon User";
 
             return `<tr>
           <td>${timestamp}</td>
           <td>${userName}</td>
           <td>${text}</td>
-          <td><a href="./attachments/${attachment}" target="_blank">${attachment}</a></td>
+            ${attachments.map((attachment) => 
+                `<td><a href="./attachments/${attachment}" target="_blank">${attachment}</a></td>`
+            )}
         </tr>`;
         }),
     );

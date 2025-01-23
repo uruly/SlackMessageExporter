@@ -1,4 +1,5 @@
 import { SLACK_BOT_TOKEN } from "./settings.ts";
+import { Attachment } from "./types/Attachments.ts";
 import { Message } from "./types/Message.ts";
 import { User } from "./types/User.ts";
 
@@ -28,11 +29,21 @@ export async function fetchMessages(channelId: string, users: User[]): Promise<a
             return [];
         }
         const currentPageMessages = data.messages.map((message: any) => {
+            const files: Attachment[] = message.files.map((file: any) => {
+                return {
+                    id: file.id,                          // "F01BSD8NY1F"
+                    name: file.name,                      // "hoge.png"
+                    title: file.title,                    // "hoge"
+                    fileType: file.filetype,              // "png"
+                    filePath: file.id + "-" + file.name,  // "F01BSD8NY1F-hoge.png"
+                    url: file.url_private                 // "https://files.slack.com/files-pri/hoge.png"
+                }
+            })
             return {
                 timestamp: message.ts,
                 user: users.find(user => user.id === message.user),
                 text: message.text || "",
-                attachements: message.files
+                attachements: files
             }
         })
         // メッセージを追加
