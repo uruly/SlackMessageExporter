@@ -4,29 +4,34 @@ import { formatTimestampToJST } from "./utils/formatter.ts";
 
 // HTML出力を作成
 export async function saveMessagesToHTML(
-    messages: Message[],
-    filePath: string,
+  messages: Message[],
+  filePath: string,
+  attachmentDir: string,
 ) {
-    const header = ["Timestamp (JST)", "User", "Text", "Attachment"];
-    const rows = await Promise.all(
-        messages.map(async (message) => {
-            const timestamp = formatTimestampToJST(message.timestamp)
-            const text = replaceShortcodesWithUnicode(message.text || "") // ショートコードをUnicodeに変換";
-            const attachments = message.attachments;
-            const userName = message.user?.realName ?? "Unknowon User";
+  const header = ["Timestamp (JST)", "User", "Text", "Attachment"];
+  const rows = await Promise.all(
+    messages.map((message) => {
+      const timestamp = formatTimestampToJST(message.timestamp);
+      const text = replaceShortcodesWithUnicode(message.text || ""); // ショートコードをUnicodeに変換";
+      const attachments = message.attachments;
+      const userName = message.user?.realName ?? "Unknowon User";
 
-            return `<tr>
+      return `<tr>
           <td>${timestamp}</td>
           <td>${userName}</td>
           <td>${text}</td>
-            ${attachments ? attachments.map((attachment) => 
-                `<td><a href="./attachments/${attachment}" target="_blank">${attachment}</a></td>`
-            ).join("") : `<td></td>`}
+          <td>
+            ${
+        attachments.map((attachment) =>
+          `<a href="${attachmentDir}/${attachment.filePath}" target="_blank">${attachment.name}</a>`
+        ).join(",")
+      }
+            </td>
         </tr>`;
-        }),
-    );
+    }),
+  );
 
-    const htmlContent = `
+  const htmlContent = `
       <!DOCTYPE html>
       <html lang="ja">
       <head>
@@ -52,6 +57,6 @@ export async function saveMessagesToHTML(
       </html>
     `;
 
-    await Deno.writeTextFile(filePath, htmlContent);
-    console.log(`Messages successfully saved to ${filePath}`);
+  await Deno.writeTextFile(filePath, htmlContent);
+  console.log(`Messages successfully saved to ${filePath}`);
 }

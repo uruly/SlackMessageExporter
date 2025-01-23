@@ -42,7 +42,7 @@ async function main() {
     // CSV ファイルとして保存
     await saveMessagesToCSV(messages, csvFilePath);
     // HTML ファイルとして保存
-    await saveMessagesToHTML(messages, htmlFilePath);
+    await saveMessagesToHTML(messages, htmlFilePath, "./attachments");
 
     await saveUnknownShortcodesJSON(logFilePath); // 未対応ショートコードをログに保存
 }

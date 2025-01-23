@@ -7,7 +7,7 @@ import { User } from "./types/User.ts";
 export async function fetchMessages(
     channelId: string,
     users: User[],
-): Promise<any[]> {
+): Promise<Message[]> {
     let messages: Message[] = [];
     let nextCursor: string | undefined;
     let pageIndex = 1;

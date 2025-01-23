@@ -9,7 +9,7 @@ export async function saveAttachments(
     if (!attachments || attachments.length === 0) return;
 
     await Promise.all(
-        attachments.map(async (attachment: any) => {
+        attachments.map(async (attachment: Attachment) => {
             if (!attachment.url) return "";
 
             const filePath = `${attachmentDir}/${attachment.filePath}`;
