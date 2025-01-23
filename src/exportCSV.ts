@@ -16,7 +16,7 @@ export async function saveMessagesToCSV(
         for (const message of messages) {
             const user = message.user;
             const attachments = message.attachments.map((attachment) => {
-                return `=HYPERLINK(""${attachment.url}"",""${attachment.filePath}"")`
+                return `=HYPERLINK("${attachment.url}","${attachment.filePath}")`
             }).join(" / ");
             yield [
                 formatTimestampToJST(message.timestamp),

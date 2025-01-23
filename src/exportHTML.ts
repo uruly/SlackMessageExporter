@@ -19,9 +19,9 @@ export async function saveMessagesToHTML(
           <td>${timestamp}</td>
           <td>${userName}</td>
           <td>${text}</td>
-            ${attachments.map((attachment) => 
+            ${attachments ? attachments.map((attachment) => 
                 `<td><a href="./attachments/${attachment}" target="_blank">${attachment}</a></td>`
-            )}
+            ).join("") : `<td></td>`}
         </tr>`;
         }),
     );

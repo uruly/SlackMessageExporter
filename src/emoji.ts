@@ -1,20 +1,20 @@
 import { Emoji } from "./types/Emoji.ts";
 
-export const emojiList: Emoji[] = [];
+const emojiList: Emoji[] = [];
 // 未対応のショートコードを検出するリスト
 const unknownShortcodes: Set<string> = new Set();
 
 // JSONファイルからショートコードと絵文字のマッピングを読み込む
 export async function loadEmojiList(filePath: string) {
     const jsonData = await Deno.readTextFile(filePath);
-    const json = JSON.parse(jsonData);
-    if (!json) {
-        json.forEach((shortcode: string, unicode: string) => {
+    const json: Record<string, string> = JSON.parse(jsonData);
+    if (json) {
+        Object.entries(json).map(([key, value]) => {
             emojiList.push({
-                shortcode: shortcode,
-                unicode: unicode
+                shortcode: key,
+                unicode: value || ""
             })
-        });
+        })
     }
 }
 
