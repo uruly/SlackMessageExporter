@@ -4,7 +4,10 @@ import { Message } from "./types/Message.ts";
 import { User } from "./types/User.ts";
 
 // Slack API を使ってメッセージを取得する関数
-export async function fetchMessages(channelId: string, users: User[]): Promise<any[]> {
+export async function fetchMessages(
+    channelId: string,
+    users: User[],
+): Promise<any[]> {
     let messages: Message[] = [];
     let nextCursor: string | undefined;
     let pageIndex = 1;
@@ -29,23 +32,26 @@ export async function fetchMessages(channelId: string, users: User[]): Promise<a
             return [];
         }
         const currentPageMessages = data.messages.map((message: any) => {
-            const files: Attachment[] = message.files.map((file: any) => {
-                return {
-                    id: file.id,                          // "F01BSD8NY1F"
-                    name: file.name,                      // "hoge.png"
-                    title: file.title,                    // "hoge"
-                    fileType: file.filetype,              // "png"
-                    filePath: file.id + "-" + file.name,  // "F01BSD8NY1F-hoge.png"
-                    url: file.url_private                 // "https://files.slack.com/files-pri/hoge.png"
-                }
-            })
+            let files: Attachment[] = []
+            if (message.files && message.files?.length > 0) {
+                files = message.files.map((file: any) => {
+                    return {
+                        id: file.id, // "F01BSD8NY1F"
+                        name: file.name, // "hoge.png"
+                        title: file.title, // "hoge"
+                        fileType: file.filetype, // "png"
+                        filePath: file.id + "-" + file.name, // "F01BSD8NY1F-hoge.png"
+                        url: file.url_private, // "https://files.slack.com/files-pri/hoge.png"
+                    };
+                });
+            }
             return {
                 timestamp: message.ts,
-                user: users.find(user => user.id === message.user),
+                user: users.find((user) => user.id === message.user),
                 text: message.text || "",
-                attachements: files
-            }
-        })
+                attachments: files,
+            };
+        });
         // メッセージを追加
         messages = messages.concat(currentPageMessages);
 
@@ -55,5 +61,7 @@ export async function fetchMessages(channelId: string, users: User[]): Promise<a
     } while (nextCursor); // 次のカーソルが存在する場合はループを継続
 
     // 日付の古い順にソート
-    return messages.sort((a, b) => parseFloat(a.timestamp) - parseFloat(b.timestamp));
+    return messages.sort((a, b) =>
+        parseFloat(a.timestamp) - parseFloat(b.timestamp)
+    );
 }

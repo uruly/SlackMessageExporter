@@ -4,7 +4,7 @@ import { Attachment } from "./types/Attachments.ts";
 // 添付ファイルを取得する
 export async function saveAttachments(
     attachments: Attachment[],
-    attachmentDir: string
+    attachmentDir: string,
 ) {
     if (!attachments || attachments.length === 0) return;
 
