@@ -1,7 +1,7 @@
 import {
     Confirm,
     Input,
-} from "https://deno.land/x/cliffy@v1.0.0-rc.7/prompt/mod.ts";
+} from "https://deno.land/x/cliffy@v1.0.0-rc.1/prompt/mod.ts";
 
 interface Config {
     exportCSV: boolean; // CSVとして吐き出すかどうか

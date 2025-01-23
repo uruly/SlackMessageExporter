@@ -5,6 +5,7 @@ import { fetchMessages } from "./src/fetchMessages.ts";
 import { saveMessagesToCSV } from "./src/exportCSV.ts";
 import { saveMessagesToHTML } from "./src/exportHTML.ts";
 import { saveAttachments } from "./src/saveAttachments.ts";
+import { config } from "./src/wizard.ts";
 
 const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
 const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
@@ -23,6 +24,7 @@ async function main() {
         );
         return;
     }
+
     // 絵文字を読み込む
     await loadEmojiList(emojiMapFilePath);
 
@@ -37,12 +39,21 @@ async function main() {
     await ensureDir(attachmentDir);
 
     // Attachmentsを保存する
-    await saveAttachments(messages.flatMap((message) => message.attachments), attachmentDir);
+    if (config.saveAttachments) {
+        await saveAttachments(
+            messages.flatMap((message) => message.attachments),
+            attachmentDir,
+        );
+    }
 
     // CSV ファイルとして保存
-    await saveMessagesToCSV(messages, csvFilePath);
+    if (config.exportCSV) {
+        await saveMessagesToCSV(messages, csvFilePath);
+    }
     // HTML ファイルとして保存
-    await saveMessagesToHTML(messages, htmlFilePath, "./attachments");
+    if (config.exportHTML) {
+        await saveMessagesToHTML(messages, htmlFilePath, "./attachments");
+    }
 
     await saveUnknownShortcodesJSON(logFilePath); // 未対応ショートコードをログに保存
 }
