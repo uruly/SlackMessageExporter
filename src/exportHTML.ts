@@ -1,6 +1,11 @@
 import { replaceShortcodesWithUnicode } from "./emoji.ts";
 import { Message } from "./types/Message.ts";
-import { addNewlinesToCodeBlocks, formatBlockQuotesAndEntities, formatListItems, formatTimestampToJST } from "./utils/formatter.ts";
+import {
+  addNewlinesToCodeBlocks,
+  formatBlockQuotesAndEntities,
+  formatListItems,
+  formatTimestampToJST,
+} from "./utils/formatter.ts";
 import { CSS, render } from "@deno/gfm";
 
 // HTML出力を作成
@@ -18,16 +23,25 @@ export async function saveMessagesToHTML(
       const attachments = message.attachments;
       const userName = message.user?.realName ?? "Unknown User";
 
+      const attachmentHTML = attachments.map((attachment) => {
+        const source = `${attachmentDir}/${attachment.filePath}`;
+        if (attachment.fileType == "png" || attachment.fileType == "jpg") {
+          return `<a href="${source}" target="_blank"><img src="${source}" width="150" alt="${attachment.title} /></a>"`;
+        } else if (
+          attachment.fileType == "mp4" || attachment.fileType == "mov"
+        ) {
+          return `<video controls width="150"><source src="${source}" type="video/${attachment.fileType}" /></video><a href="${source}" target="_blank">${attachment.name}</a>`;
+        } else {
+          return `<a href="${source}" target="_blank">${attachment.name}</a>`;
+        }
+      }).join(",");
+
       return `<tr>
           <td>${timestamp}</td>
-          <td>${userName}</td>
+          <td><img src="">${userName}</td>
           <td class="markdown-body">${markdownContent}</td>
           <td>
-            ${
-        attachments.map((attachment) =>
-          `<a href="${attachmentDir}/${attachment.filePath}" target="_blank">${attachment.name}</a>`
-        ).join(",")
-      }
+            ${attachmentHTML}
             </td>
         </tr>`;
     }),
