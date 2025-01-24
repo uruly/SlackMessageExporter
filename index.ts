@@ -18,7 +18,7 @@ const htmlFilePath = outputDir + "/slack_messages.html";
 const logFilePath = "./unknown_shortcodes.json";
 
 async function main() {
-    if (!SLACK_BOT_TOKEN || !SLACK_CHANNEL_ID) {
+    if (!SLACK_BOT_TOKEN || !config.channelID) {
         console.error(
             "SLACK_BOT_TOKEN または SLACK_CHANNEL_ID が設定されていません。",
         );
@@ -29,7 +29,7 @@ async function main() {
     await loadEmojiList(emojiMapFilePath);
 
     const users = await fetchUsers();
-    const messages = await fetchMessages(SLACK_CHANNEL_ID, users);
+    const messages = await fetchMessages(config.channelID, users);
     if (messages.length === 0) {
         console.log("No messages found.");
         return;
