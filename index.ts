@@ -18,7 +18,7 @@ const logFilePath = "./unknown_shortcodes.json";
 async function main() {
   if (!SLACK_BOT_TOKEN || !config.channelID) {
     console.error(
-      "SLACK_BOT_TOKEN または SLACK_CHANNEL_ID が設定されていません。",
+      "SLACK_BOT_TOKEN or SLACK_CHANNEL_ID is not set.",
     );
     return;
   }
