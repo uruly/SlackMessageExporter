@@ -13,7 +13,7 @@ export async function fetchMessages(
     let pageIndex = 1;
 
     do {
-        console.log(pageIndex + "ページ目を取得中...");
+        console.log(`Fetching page ${pageIndex}...`);
         const url =
             `https://slack.com/api/conversations.history?channel=${channelId}${
                 nextCursor ? `&cursor=${nextCursor}` : ""
