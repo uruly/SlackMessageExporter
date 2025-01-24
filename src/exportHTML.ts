@@ -22,6 +22,7 @@ export async function saveMessagesToHTML(
       const markdownContent = render(parsedText);
       const attachments = message.attachments;
       const userName = message.user?.realName ?? "Unknown User";
+      const userIcon = message.user?.iconURL
 
       const attachmentHTML = attachments.map((attachment) => {
         const source = `${attachmentDir}/${attachment.filePath}`;
@@ -38,7 +39,7 @@ export async function saveMessagesToHTML(
 
       return `<tr>
           <td>${timestamp}</td>
-          <td><img src="">${userName}</td>
+          <td>${userIcon && `<img src="${userIcon}" width="50" />`}${userName}</td>
           <td class="markdown-body">${markdownContent}</td>
           <td>
             ${attachmentHTML}
