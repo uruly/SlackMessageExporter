@@ -17,11 +17,13 @@ It organizes message content, user information, and attachments.
 ## Environment
 
 Slack Message Exporter works in the following environment:
+```bash
+deno --version
 
-- **Deno**: `2.1.6 (stable, release, aarch64-apple-darwin)`
-- **V8**: `13.0.245.12-rusty`
-- **TypeScript**: `5.6.2`
-
+deno 2.1.6 (stable, release, aarch64-apple-darwin)
+v8 13.0.245.12-rusty
+typescript 5.6.2
+```
 
 ## Installation
 
