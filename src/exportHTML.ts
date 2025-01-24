@@ -1,6 +1,7 @@
 import { replaceShortcodesWithUnicode } from "./emoji.ts";
 import { Message } from "./types/Message.ts";
 import { formatTimestampToJST } from "./utils/formatter.ts";
+import { CSS, render } from "@deno/gfm";
 
 // HTML出力を作成
 export async function saveMessagesToHTML(
@@ -13,13 +14,14 @@ export async function saveMessagesToHTML(
     messages.map((message) => {
       const timestamp = formatTimestampToJST(message.timestamp);
       const text = replaceShortcodesWithUnicode(message.text || ""); // ショートコードをUnicodeに変換";
+      const markdownContent = render(text);
       const attachments = message.attachments;
       const userName = message.user?.realName ?? "Unknowon User";
 
       return `<tr>
           <td>${timestamp}</td>
           <td>${userName}</td>
-          <td>${text}</td>
+          <td class="markdown-body">${markdownContent}</td>
           <td>
             ${
         attachments.map((attachment) =>
@@ -41,6 +43,7 @@ export async function saveMessagesToHTML(
           table { border-collapse: collapse; width: 100%; }
           th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
           th { background-color: #f4f4f4; }
+          ${CSS}
         </style>
       </head>
       <body>
