@@ -8,9 +8,11 @@ import { saveMessagesToHTML } from "./src/exportHTML.ts";
 import { saveAttachments } from "./src/saveAttachments.ts";
 import { config } from "./src/wizard.ts";
 import { SLACK_BOT_TOKEN } from "./src/settings.ts";
+import { copyCSS } from "./src/copyCSS.ts";
 
 const emojiMapFilePath = "./emoji_map.json";
-const outputDir = `./${config.outputFolderPath}`;
+const outputDir = `${config.outputFolderPath}`;
+const attachmentDir = "attachments";
 const logFilePath = "./unknown_shortcodes.json";
 
 async function main() {
@@ -20,6 +22,8 @@ async function main() {
     );
     return;
   }
+
+  const outputPath = `./${outputDir}`;
 
   // 絵文字を読み込む
   await loadEmojiList(emojiMapFilePath);
@@ -33,12 +37,12 @@ async function main() {
     return;
   }
 
-  await ensureDir(outputDir);
+  await ensureDir(outputPath);
 
   // Attachmentsを保存する
   if (config.saveAttachments) {
-    const attachmentDir = outputDir + "/attachments";
-    await ensureDir(attachmentDir);
+    const attachmentPath = `./${outputDir}/${attachmentDir}`;
+    await ensureDir(attachmentPath);
 
     await saveAttachments(
       messages.flatMap((message) => message.attachments),
@@ -48,13 +52,22 @@ async function main() {
 
   // CSV ファイルとして保存
   if (config.exportCSV) {
-    const csvFilePath = `${outputDir}/${info.workspaceName}_${info.channelName}.csv`;
+    const csvFilePath =
+      `${outputPath}/${info.workspaceName}_${info.channelName}.csv`;
     await saveMessagesToCSV(messages, csvFilePath);
   }
   // HTML ファイルとして保存
   if (config.exportHTML) {
-    const htmlFilePath = `${outputDir}/${info.workspaceName}_${info.channelName}.html`;
-    await saveMessagesToHTML(messages, info, htmlFilePath, "./attachments");
+    const htmlFilePath =
+      `${outputPath}/${info.workspaceName}_${info.channelName}.html`;
+    await saveMessagesToHTML(
+      messages,
+      info,
+      htmlFilePath,
+      `./${attachmentDir}`,
+    );
+    // CSSファイルを配置する
+    await copyCSS(outputDir);
   }
 
   await saveUnknownShortcodesJSON(logFilePath); // 未対応ショートコードをログに保存
