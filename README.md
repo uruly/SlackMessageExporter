@@ -10,6 +10,8 @@ deno run --env --allow-net --allow-write --allow-read --allow-env index.ts
 - `emoji:read`
 - `files:read`
 - `users:read`
+- `channels:read`
+- `team:read`
 
 ## Reference
 

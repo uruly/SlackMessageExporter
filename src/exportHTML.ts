@@ -1,4 +1,5 @@
 import { replaceShortcodesWithUnicode } from "./emoji.ts";
+import { Info } from "./types/Info.ts";
 import { Message } from "./types/Message.ts";
 import {
   addNewlinesToCodeBlocks,
@@ -11,6 +12,7 @@ import { CSS, render } from "@deno/gfm";
 // HTML出力を作成
 export async function saveMessagesToHTML(
   messages: Message[],
+  info: Info,
   filePath: string,
   attachmentDir: string,
 ) {
@@ -62,7 +64,7 @@ export async function saveMessagesToHTML(
         </style>
       </head>
       <body>
-        <h1>Slack Messages</h1>
+        <h1>${info.channelName} | ${info.workspaceName}</h1>
         <table>
           <thead>
             <tr>${header.map((h) => `<th>${h}</th>`).join("")}</tr>
