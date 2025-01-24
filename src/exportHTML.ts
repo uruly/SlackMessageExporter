@@ -16,7 +16,6 @@ export async function saveMessagesToHTML(
   filePath: string,
   attachmentDir: string,
 ) {
-  const header = ["Timestamp (JST)", "User", "Text", "Attachment"];
   const rows = await Promise.all(
     messages.map((message) => {
       const timestamp = formatTimestampToJST(message.timestamp);
@@ -24,29 +23,41 @@ export async function saveMessagesToHTML(
       const markdownContent = render(parsedText);
       const attachments = message.attachments;
       const userName = message.user?.realName ?? "Unknown User";
-      const userIcon = message.user?.iconURL
+      const userIcon = message.user?.iconURL;
 
-      const attachmentHTML = attachments.map((attachment) => {
-        const source = `${attachmentDir}/${attachment.filePath}`;
-        if (attachment.fileType == "png" || attachment.fileType == "jpg") {
-          return `<a href="${source}" target="_blank"><img src="${source}" width="150" alt="${attachment.title} /></a>"`;
-        } else if (
-          attachment.fileType == "mp4" || attachment.fileType == "mov"
-        ) {
-          return `<video controls width="150"><source src="${source}" type="video/${attachment.fileType}" /></video><a href="${source}" target="_blank">${attachment.name}</a>`;
-        } else {
-          return `<a href="${source}" target="_blank">${attachment.name}</a>`;
-        }
-      }).join(",");
+      const attachmentHTML = attachments
+        .map((attachment) => {
+          const source = `${attachmentDir}/${attachment.filePath}`;
+          if (attachment.fileType === "png" || attachment.fileType === "jpg") {
+            return `<a href="${source}" target="_blank"><img src="${source}" width="150" alt="${attachment.title}" /></a>`;
+          } else if (attachment.fileType === "mp4" || attachment.fileType === "mov") {
+            return `<video controls width="150"><source src="${source}" type="video/${attachment.fileType}" /></video><a href="${source}" target="_blank">${attachment.name}</a>`;
+          } else {
+            return `<a href="${source}" target="_blank">${attachment.name}</a>`;
+          }
+        })
+        .join(" ");
 
-      return `<tr>
-          <td>${timestamp}</td>
-          <td>${userIcon && `<img src="${userIcon}" width="50" />`}${userName}</td>
-          <td class="markdown-body">${markdownContent}</td>
-          <td>
+
+      return `
+        <article class="message">
+          <header class="message-header">
+            ${
+        userIcon
+          ? `<img src="${userIcon}" alt="${userName}" class="user-icon" />`
+          : ""
+      }
+            <div>
+              <h2 class="user-name">${userName}</h2>
+              <time datetime="${message.timestamp}">${timestamp}</time>
+            </div>
+          </header>
+          <section class="message-content markdown-body">${markdownContent}</section>
+          <footer class="message-attachments">
             ${attachmentHTML}
-            </td>
-        </tr>`;
+          </footer>
+        </article>
+      `;
     }),
   );
 
@@ -56,23 +67,16 @@ export async function saveMessagesToHTML(
       <head>
         <meta charset="UTF-8">
         <title>Slack Messages</title>
+        <link rel="stylesheet" href="./style.css">
         <style>
-          table { border-collapse: collapse; width: 100%; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f4f4f4; }
           ${CSS}
         </style>
       </head>
       <body>
-        <h1>${info.channelName} | ${info.workspaceName}</h1>
-        <table>
-          <thead>
-            <tr>${header.map((h) => `<th>${h}</th>`).join("")}</tr>
-          </thead>
-          <tbody>
-            ${rows.join("\n")}
-          </tbody>
-        </table>
+        <h1>${info.workspaceName} #${info.channelName}</h1>
+        <main>
+          ${rows.join("\n")}
+        </main>
       </body>
       </html>
     `;

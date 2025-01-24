@@ -46,7 +46,7 @@ async function main() {
 
     await saveAttachments(
       messages.flatMap((message) => message.attachments),
-      attachmentDir,
+      attachmentPath,
     );
   }
 
