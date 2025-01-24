@@ -13,8 +13,7 @@ export async function saveMessagesToHTML(
   const rows = await Promise.all(
     messages.map((message) => {
       const timestamp = formatTimestampToJST(message.timestamp);
-      const text = replaceShortcodesWithUnicode(message.text || ""); // ショートコードをUnicodeに変換";
-      const parsedText = formatMessage(text);
+      const parsedText = formatMessage(message.text || "");
       const markdownContent = render(parsedText);
       const attachments = message.attachments;
       const userName = message.user?.realName ?? "Unknown User";
@@ -69,5 +68,6 @@ function formatMessage(text: string): string {
   text = addNewlinesToCodeBlocks(text);
   text = formatBlockQuotesAndEntities(text);
   text = formatListItems(text);
+  text = replaceShortcodesWithUnicode(text); // ショートコードをUnicodeに変換";
   return text;
 }
