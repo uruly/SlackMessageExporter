@@ -36,11 +36,13 @@ typescript 5.6.2
 
     In the left-hand menu, select "OAuth & Permissions."
     Under the Scopes section, add the following scopes to "Bot Token Scopes":
+
         - `channels:history`
         - `files:read`
         - `users:read`
         - `channels:read`
         - `team:read`
+    
     Click "Install App to Workspace" and authorize the app.
     Copy the "OAuth Access Token" and set it as SLACK_BOT_TOKEN in your .env file.
 
@@ -61,31 +63,31 @@ typescript 5.6.2
 
 5. **Clone the repository**:
 
-```bash
-git clone https://github.com/uruly/SlackMessageExporter
-cd SlackMessageExporter
-```
+    ```bash
+    git clone https://github.com/uruly/SlackMessageExporter
+    cd SlackMessageExporter
+    ```
 
 6. Create a .env file: Set up the environment variables by creating a .env file with the following content:
 
-```
-# Slack Bot Token
-SLACK_BOT_TOKEN=your-slack-bot-token
+    ```
+    # Slack Bot Token
+    SLACK_BOT_TOKEN=your-slack-bot-token
 
-# Slack Channel ID
-SLACK_CHANNEL_ID=your-channel-id
-```
+    # Slack Channel ID
+    SLACK_CHANNEL_ID=your-channel-id
+    ```
 
 
 ## Usage
 
 1. Run the export script:
-```bash
-deno run --env --allow-net --allow-write --allow-read --allow-env index.ts
-```
+    ```bash
+    deno run --env --allow-net --allow-write --allow-read --allow-env index.ts
+    ```
 
 2. Output:
-Files are saved in the outputs/ directory.
+    Files are saved in the outputs/ directory.
 
 
 ## Reference
