@@ -28,7 +28,7 @@ async function getConfig(): Promise<Config> {
 
     const outputFolderPath = await Input.prompt({
         message: "Path to output folder",
-        default: "output",
+        default: "outputs",
     });
 
     return {

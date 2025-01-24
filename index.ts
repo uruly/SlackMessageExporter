@@ -11,7 +11,7 @@ const SLACK_BOT_TOKEN = Deno.env.get("SLACK_BOT_TOKEN");
 const SLACK_CHANNEL_ID = Deno.env.get("SLACK_CHANNEL_ID");
 
 const emojiMapFilePath = "./emoji_map.json";
-const outputDir = "./outputs";
+const outputDir = `./${config.outputFolderPath}`;
 const attachmentDir = outputDir + "/attachments";
 const csvFilePath = outputDir + "/slack_messages.csv";
 const htmlFilePath = outputDir + "/slack_messages.html";
@@ -36,10 +36,11 @@ async function main() {
     }
 
     await ensureDir(outputDir);
-    await ensureDir(attachmentDir);
 
     // Attachmentsを保存する
     if (config.saveAttachments) {
+        await ensureDir(attachmentDir);
+
         await saveAttachments(
             messages.flatMap((message) => message.attachments),
             attachmentDir,
