@@ -37,11 +37,13 @@ typescript 5.6.2
     In the left-hand menu, select "OAuth & Permissions."
     Under the Scopes section, add the following scopes to "Bot Token Scopes":
 
-        - `channels:history`
-        - `files:read`
-        - `users:read`
-        - `channels:read`
-        - `team:read`
+        channels:history    # Retrieve message history from public channels.
+        files:read          # Access and download files shared in channels.
+        users:read          # Retrieve user information (e.g., real names, profile pictures).
+        channels:read       # Identify and access public channels in the workspace.
+        team:read           # Get workspace-level information (e.g., workspace name).
+        groups:history      # (Optional) Retrieve message history from private channels if needed.
+        groups:read         # (Optional) Identify and access private channels if needed.
     
     Click "Install App to Workspace" and authorize the app.
     Copy the "OAuth Access Token" and set it as SLACK_BOT_TOKEN in your .env file.
