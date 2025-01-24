@@ -12,17 +12,17 @@ interface Config {
 
 async function getConfig(): Promise<Config> {
     const exportCSV = await Confirm.prompt({
-        message: "CSVファイルを書き出しますか?",
+        message: "Export CSV file?",
         default: true,
     });
 
     const exportHTML = await Confirm.prompt({
-        message: "HTMLファイルを書き出しますか?",
+        message: "Export HTML file?",
         default: true,
     });
 
     const saveAttachments = await Confirm.prompt({
-        message: "添付ファイルを保存しますか?",
+        message: "Save Attachment?",
         default: true,
     });
 
