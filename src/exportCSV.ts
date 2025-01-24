@@ -1,5 +1,5 @@
 import { writeCSV } from "https://deno.land/x/csv@v0.9.1/mod.ts";
-import { formatTimestampToJST } from "./utils/formatter.ts";
+import { addNewlinesToCodeBlocks, formatTimestampToJST } from "./utils/formatter.ts";
 import { replaceShortcodesWithUnicode } from "./emoji.ts";
 import { Message } from "./types/Message.ts";
 
@@ -18,10 +18,11 @@ export async function saveMessagesToCSV(
             const attachments = message.attachments.map((attachment) => {
                 return `=HYPERLINK("${attachment.url}","${attachment.filePath}")`
             }).join(" / ");
+            const formattedText = formatMessage(message.text || "");
             yield [
                 formatTimestampToJST(message.timestamp),
                 user?.realName || "Unknown User", // ユーザーIDを名前に変換
-                replaceShortcodesWithUnicode(message.text || ""), // ショートコードをUnicodeに変換
+                formattedText,
                 attachments
             ];
         }
@@ -42,4 +43,10 @@ export async function saveMessagesToCSV(
         // ファイルを閉じる
         file.close();
     }
+}
+
+function formatMessage(text: string): string {
+  text = addNewlinesToCodeBlocks(text);
+  text = replaceShortcodesWithUnicode(text)
+  return text;
 }
